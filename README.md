@@ -1,4 +1,7 @@
 # VulcanDatabase - A MySQL extension for Vulcan AntiCheat
+
+IF YOU NEED HELP JOIN https://austech.dev/to/support AND USE THE COMMAND `/ticket create`
+
 ## Why does this exist?
 ~~Because frap is taking too long to add MySQL~~ Because I wanted to use MySQL.
 
