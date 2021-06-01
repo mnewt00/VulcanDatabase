@@ -1,14 +1,7 @@
 # The storage types the plugin uses
 
-# MySQL - You should use MariaDB instead
-# MariaDB
-# MongoDB
-
-storage-type: MySQL
-
 connection-information:
-  # By default, the ports will be as follows:
-  # MySQL/MariaDB: 3306, MongoDB: 27017
+  # By default, the ports will be 3306.
   # Use ip:port if you need to.
   host: localhost
 
@@ -23,5 +16,27 @@ connection-information:
   # Set the line below to false disable SSL
   useSSL: true
 
-  # The prefixes of tables from the plugin, best to keep default.
-  table-prefix: "vulcandb_"
+# The amount of logs to show on a single page
+items-per-page: 10
+
+log-date-timezone: Australia/Melbourne # stfu im from australia / http://tutorials.jenkov.com/java-date-time/java-util-timezone.html#available-time-zones
+
+messages:
+  log-header:
+    message: "&7AntiCheat logs for &f%player% (Page %page%/%maxpage%)"
+    tooltip: "&7%uuid%" # Hover message
+  log:
+    time:
+      message: "&9%niceformatted%" # First part, keep this ideally, only change colour code
+      hover: "&9%longdateformat%" # Same as above
+      format: "HH:mm dd/MM/yyyy zzz" # keep same plz
+    main-message:
+      message: "&f%player% &7failed &f%check% %type% &7[&f%vl%&7]"
+      hover:
+        - "&7Ping: &9%ping% &7| TPS: &9%tps% &7| Version: &9%version%"
+        - ""
+        - "&7Description:"
+        - "&7%description%"
+        - ""
+        - "&7Information:"
+        - "&7%info%"

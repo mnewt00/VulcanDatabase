@@ -2,8 +2,7 @@ package com.mnewt00.vulcandatabase;
 
 import com.mnewt00.vulcandatabase.commands.LogsCommand;
 import com.mnewt00.vulcandatabase.listener.VulcanListener;
-import com.mnewt00.vulcandatabase.storage.AbstractStorageProvider;
-import com.mnewt00.vulcandatabase.storage.impl.MySQLStorageProvider;
+import com.mnewt00.vulcandatabase.storage.MySQLStorageProvider;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -11,7 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class VulcanDatabase extends JavaPlugin {
     @Getter private static VulcanDatabase instance;
-    @Getter private AbstractStorageProvider storageProvider;
+    @Getter private MySQLStorageProvider storageProvider;
 
     @Override
     public void onEnable() {
@@ -29,15 +28,7 @@ public final class VulcanDatabase extends JavaPlugin {
         String tablePrefix = data.getString("table-prefix");
         boolean useSSL = data.getBoolean("useSSL");
 
-        switch (getConfig().getString("storage-type").toLowerCase()) {
-            case "mysql":
-                storageProvider = new MySQLStorageProvider(host, port, username, password, databaseName, tablePrefix, useSSL);
-            case "mariadb":
-//                storageType = StorageType.MARIADB;
-            case "mongo":
-//                storageType = StorageType.MONGODB;
-                break;
-        }
+        storageProvider = new MySQLStorageProvider(host, port, username, password, databaseName, tablePrefix, useSSL);
 
         Bukkit.getPluginManager().registerEvents(new VulcanListener(), this);
 
