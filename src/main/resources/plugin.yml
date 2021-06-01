@@ -1,0 +1,7 @@
+name: VulcanDatabase
+version: @version@
+main: com.mnewt00.vulcandatabase.VulcanDatabase
+api-version: 1.13
+depend: [ Vulcan ]
+description: A simple log plugin for Vulcan
+website: https://mnewt00.com

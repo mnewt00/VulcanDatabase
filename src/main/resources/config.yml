@@ -1,0 +1,27 @@
+# The storage types the plugin uses
+
+# MySQL - You should use MariaDB instead
+# MariaDB
+# MongoDB
+
+storage-type: MySQL
+
+connection-information:
+  # By default, the ports will be as follows:
+  # MySQL/MariaDB: 3306, MongoDB: 27017
+  # Use ip:port if you need to.
+  host: localhost
+
+  # Credentials
+  username: ''
+  password: ''
+
+  # The name of the database to store the logs.
+  # This database must already exist.
+  database-name: vulcan
+
+  # Set the line below to false disable SSL
+  useSSL: true
+
+  # The prefixes of tables from the plugin, best to keep default.
+  table-prefix: "vulcandb_"

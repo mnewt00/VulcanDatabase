@@ -1,0 +1,72 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id "io.freefair.lombok" version "6.0.0-m2"
+}
+
+group = 'com.mnewt00'
+version = '1.0.0'
+
+java.sourceCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+
+    maven {
+        url = 'https://jitpack.io'
+    }
+
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT'
+    compileOnly 'me.frap.vulcan:vulcanapi:2.0.1'
+    implementation 'com.zaxxer:HikariCP:4.0.3' // Will include slf4j api
+    implementation 'mysql:mysql-connector-java:8.0.24'
+    implementation 'com.github.mkremins:fanciful:6827e9c7df'
+}
+
+shadowJar {
+    relocate "com.zaxxer.hikari", "com.mnewt00.vulcandatabase.shaded.hikari"
+}
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+processResources {
+    filter ReplaceTokens, tokens: [
+            "version": getVersion()
+    ]
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+task copyJars(type: Copy) {
+    outputTasks().forEach({ from(it) })
+    rename '(.*)-all.jar', ("VulcanDatabase-" + version + ".jar")
+    into file('jars')
+}
+
+def outputTasks() {
+    ["shadowJar"].stream().map({ tasks.findByPath(it) })
+}
+
+task cleanJars() {
+    delete file('jars')
+}
+
+clean.dependsOn cleanJars
+build.dependsOn shadowJar
+build.dependsOn copyJars
