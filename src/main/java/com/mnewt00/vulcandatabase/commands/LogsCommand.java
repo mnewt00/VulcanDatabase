@@ -21,7 +21,7 @@ import java.util.*;
 public class LogsCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // logs <player> [amount|all] (all uploads to hastebin)
+        // logs <player> [pages]
         if (!sender.hasPermission("vulcan.logs")) {
             sender.sendMessage(ChatColor.RED + "No permission.");
             return true;
