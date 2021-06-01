@@ -1,17 +1,3 @@
-# VulcanDatabase - A MySQL extension for Vulcan AntiCheat
-
-**IF YOU NEED HELP JOIN https://austech.dev/to/support AND USE THE COMMAND `/ticket create`**
-
-## Why does this exist?
-~~Because frap is taking too long to add MySQL~~ Because I wanted to use MySQL.
-
-## How do I install it?
-Drag to your plugin folder, and make sure `enable-api` in vulcan is enabled
-
-the code is shit dont hate
-
-# License
-
 Copyright (c) 2021 mnewt00
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -31,5 +17,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-> Basically means if it fucks up your server it's not my issue :)
