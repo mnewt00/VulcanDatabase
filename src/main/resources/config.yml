@@ -16,6 +16,9 @@ connection-information:
   # Set the line below to false disable SSL
   useSSL: true
 
+# The server name (change this to like Practice or Factions idk)
+server-name: "Server"
+
 # The amount of logs to show on a single page
 items-per-page: 10
 
@@ -33,7 +36,7 @@ messages:
     main-message:
       message: "&f%player% &7failed &f%check% %type% &7[&f%vl%&7]"
       hover:
-        - "&7Ping: &9%ping% &7| TPS: &9%tps% &7| Version: &9%version%"
+        - "&7Server: &9%server% &7| Ping: &9%ping% &7| TPS: &9%tps% &7| Version: &9%version%"
         - ""
         - "&7Description:"
         - "&7%description%"

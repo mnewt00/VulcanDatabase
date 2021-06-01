@@ -66,7 +66,7 @@ public class MySQLStorageProvider {
     public List<Log> getLogs(int amount, int offset, UUID uuid) {
         List<Log> logs = Lists.newArrayList();
 
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement("SELECT uuid,name,timestamp,information,`check`,check_type,violations,version,ping,tps FROM vulcandb_logs WHERE `uuid` = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?;")) {
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement("SELECT uuid,name,timestamp,`server`,information,`check`,check_type,violations,version,ping,tps FROM vulcandb_logs WHERE `uuid` = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?;")) {
             preparedStatement.setString(1, uuid.toString());
             preparedStatement.setInt(2, amount);
             preparedStatement.setInt(3, offset);
@@ -80,10 +80,11 @@ public class MySQLStorageProvider {
                                     resultSet.getString(4),
                                     resultSet.getString(5),
                                     resultSet.getString(6),
-                                    resultSet.getInt(7),
-                                    resultSet.getString(8),
-                                    resultSet.getInt(9),
-                                    resultSet.getDouble(10)
+                                    resultSet.getString(7),
+                                    resultSet.getInt(8),
+                                    resultSet.getString(9),
+                                    resultSet.getInt(10),
+                                    resultSet.getDouble(11)
                         ));
             }
             resultSet.close();
@@ -95,18 +96,19 @@ public class MySQLStorageProvider {
 
     public void addLog(Log log, UUID uuid) {
         try (PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO vulcandb_logs" +
-                " (uuid, name, timestamp, information, `check`, check_type, violations, version, ping, tps)" +
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")) {
+                " (uuid, name, timestamp, `server`, information, `check`, check_type, violations, version, ping, tps)" +
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")) {
             preparedStatement.setString(1, log.getUuid().toString());
             preparedStatement.setString(2, log.getPlayerName());
             preparedStatement.setString(3, String.valueOf(log.getTimestamp()));
-            preparedStatement.setString(4, log.getInfo());
-            preparedStatement.setString(5, log.getCheckName());
-            preparedStatement.setString(6, log.getCheckType());
-            preparedStatement.setInt(7, log.getVl());
-            preparedStatement.setString(8, log.getVersion());
-            preparedStatement.setInt(9, log.getPing());
-            preparedStatement.setDouble(10, log.getTps());
+            preparedStatement.setString(4, log.getServer());
+            preparedStatement.setString(5, log.getInfo());
+            preparedStatement.setString(6, log.getCheckName());
+            preparedStatement.setString(7, log.getCheckType());
+            preparedStatement.setInt(8, log.getVl());
+            preparedStatement.setString(9, log.getVersion());
+            preparedStatement.setInt(10, log.getPing());
+            preparedStatement.setDouble(11, log.getTps());
 
             preparedStatement.executeUpdate();
         } catch (SQLException exception) {
@@ -121,6 +123,7 @@ public class MySQLStorageProvider {
                         "uuid VARCHAR(36) NOT NULL," +
                         "name VARCHAR(255) NOT NULL," +
                         "timestamp VARCHAR(255) NOT NULL," +
+                        "server VARCHAR(255)," +
                         "information VARCHAR(255)," +
                         "`check` VARCHAR(255) NOT NULL," +
                         "check_type VARCHAR(255) NOT NULL," +

@@ -9,6 +9,7 @@ public class Log {
     private final UUID uuid;
     private final String playerName;
     private final long timestamp;
+    private final String server;
     private final String info;
     private final String checkName;
     private final String checkType;

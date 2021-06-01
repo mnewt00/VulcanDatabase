@@ -27,8 +27,8 @@ public class LogsCommand implements CommandExecutor {
             return true;
         }
 
-        if (args.length == 0) {
-            sender.sendMessage(ChatColor.RED + "Usage: /logs <player> [pages|all]");
+        if (args.length == 0 || args.length > 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /logs <player> [pages]");
             return true;
         }
 
@@ -38,7 +38,7 @@ public class LogsCommand implements CommandExecutor {
             return true;
         }
 
-        if (args.length == 2 && !args[1].equalsIgnoreCase("all")) {
+        if (args.length == 2) {
             try {
                 Integer.parseInt(args[1]);
             } catch (NumberFormatException exception) {
@@ -50,74 +50,88 @@ public class LogsCommand implements CommandExecutor {
         int pages = Integer.parseInt(args.length == 2 ? args[1] : "1") - 1;
 
         Bukkit.getScheduler().runTaskAsynchronously(VulcanDatabase.getInstance(), () -> {
-            if (args.length == 1 || (args.length == 2 && !args[1].equalsIgnoreCase("all"))) {
-                List<Log> logs = VulcanDatabase.getInstance().getStorageProvider().getLogs(VulcanDatabase.getInstance().getConfig().getInt("items-per-page", 10), pages * 10, player.getUniqueId());
-                int pageCount = VulcanDatabase.getInstance().getStorageProvider().count(player.getUniqueId());
+            List<Log> logs = VulcanDatabase.getInstance().getStorageProvider().getLogs(VulcanDatabase.getInstance().getConfig().getInt("items-per-page", 10), pages * 10, player.getUniqueId());
+            int pageCount = VulcanDatabase.getInstance().getStorageProvider().count(player.getUniqueId());
 
-                if (logs.isEmpty() && pageCount != 0) {
-                    sender.sendMessage(ChatColor.RED + "There is no page " + (pages + 1) + " for that player!");
-                    return;
-                } else if (logs.isEmpty()) {
-                    sender.sendMessage(ChatColor.RED + "That player has no AntiCheat logs!");
-                    return;
-                }
+            if (logs.isEmpty() && pageCount != 0) {
+                sender.sendMessage(ChatColor.RED + "There is no page " + (pages + 1) + " for that player!");
+                return;
+            } else if (logs.isEmpty()) {
+                sender.sendMessage(ChatColor.RED + "That player has no AntiCheat logs!");
+                return;
+            }
 
-                FancyMessage fancyHeader = new FancyMessage(Common.colorize(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log-header.message")
+            FancyMessage fancyHeader = new FancyMessage(Common.colorize(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log-header.message")
+                    .replace("%player%", player.getName())
+                    .replace("%uuid%", player.getUniqueId().toString())
+                    .replace("%page%", String.valueOf(pages + 1))
+                    .replace("%maxpage%", String.valueOf(pageCount / 10 + 1)))));
+            if (!VulcanDatabase.getInstance().getConfig().getString("messages.log-header.tooltip").isEmpty()) {
+                fancyHeader.tooltip(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log-header.tooltip")
                         .replace("%player%", player.getName())
                         .replace("%uuid%", player.getUniqueId().toString())
                         .replace("%page%", String.valueOf(pages + 1))
-                        .replace("%maxpage%", String.valueOf(pageCount / 10 + 1)))));
-                if (!VulcanDatabase.getInstance().getConfig().getString("messages.log-header.tooltip").isEmpty()) {
-                    fancyHeader.tooltip(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log-header.tooltip")
+                        .replace("%maxpage%", String.valueOf(pageCount / 10 + 1))));
+            }
+
+            Bukkit.getScheduler().runTask(VulcanDatabase.getInstance(), () -> fancyHeader.send(sender));
+
+            Map<String, Check> treeMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            VulcanAPI.Factory.getApi().getChecks(Bukkit.getOnlinePlayers().stream().findFirst().orElseThrow(() -> new IllegalArgumentException("No players are online to get checks descriptions."))).forEach(c -> treeMap.put(c.getName() + c.getType(), c));
+
+            for (Log log : logs) {
+                Bukkit.getScheduler().runTask(VulcanDatabase.getInstance(), () -> {
+                    long diff = System.currentTimeMillis() - log.getTimestamp();
+
+                    // https://stackoverflow.com/a/13018647/11357644
+                    int SECOND_MILLIS = 1000;
+                    int MINUTE_MILLIS = 60 * SECOND_MILLIS;
+                    int HOUR_MILLIS = 60 * MINUTE_MILLIS;
+                    int DAY_MILLIS = 24 * HOUR_MILLIS;
+
+                    String friendlyTime;
+                    if (diff < MINUTE_MILLIS) {
+                        friendlyTime = "Just now";
+                    } else if (diff < 2 * MINUTE_MILLIS) {
+                        friendlyTime = "A minute ago";
+                    } else if (diff < 50 * MINUTE_MILLIS) {
+                        friendlyTime = diff / MINUTE_MILLIS + " minutes ago";
+                    } else if (diff < 90 * MINUTE_MILLIS) {
+                        friendlyTime = "An hour ago";
+                    } else if (diff < 24 * HOUR_MILLIS) {
+                        friendlyTime = diff / HOUR_MILLIS + " hours ago";
+                    } else if (diff < 48 * HOUR_MILLIS) {
+                        friendlyTime = "Yesterday";
+                    } else {
+                        friendlyTime = diff / DAY_MILLIS + " days ago";
+                    }
+
+                    SimpleDateFormat sdf = new SimpleDateFormat(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.format"));
+                    TimeZone timeZone = TimeZone.getTimeZone(VulcanDatabase.getInstance().getConfig().getString("log-date-timezone", "Australia/Melbourne"));
+                    sdf.setTimeZone(timeZone);
+
+                    FancyMessage fancyLog = new FancyMessage(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.message").replace("%niceformatted%", friendlyTime).replace("%longdateformat%", sdf.format(new Date(log.getTimestamp())))))
+                            .tooltip(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.hover").replace("%niceformatted%", friendlyTime).replace("%longdateformat%", sdf.format(new Date(log.getTimestamp())))));
+
+                    String description = treeMap.get(log.getCheckName() + log.getCheckType()).getDescription();
+
+                    fancyLog.then(" " + Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.main-message.message")
                             .replace("%player%", player.getName())
                             .replace("%uuid%", player.getUniqueId().toString())
-                            .replace("%page%", String.valueOf(pages + 1))
-                            .replace("%maxpage%", String.valueOf(pageCount / 10 + 1))));
-                }
+                            .replace("%info%", log.getInfo())
+                            .replace("%description%", description)
+                            .replace("%version%", log.getVersion())
+                            .replace("%check%", log.getCheckName())
+                            .replace("%type%", log.getCheckType())
+                            .replace("%vl%", log.getVl() + "")
+                            .replace("%ping%", log.getPing() + "")
+                            .replace("%tps%", new DecimalFormat("#.##").format(log.getTps()) + "")
+                            .replace("%server%", log.getServer())
+                    ));
 
-                Bukkit.getScheduler().runTask(VulcanDatabase.getInstance(), () -> fancyHeader.send(sender));
-
-                Map<String, Check> treeMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-                VulcanAPI.Factory.getApi().getChecks(Bukkit.getOnlinePlayers().stream().findFirst().orElseThrow(() -> new IllegalArgumentException("No players are online to get checks descriptions."))).forEach(c -> treeMap.put(c.getName() + c.getType(), c));
-
-                for (Log log : logs) {
-                    Bukkit.getScheduler().runTask(VulcanDatabase.getInstance(), () -> {
-                        long diff = System.currentTimeMillis() - log.getTimestamp();
-
-                        // https://stackoverflow.com/a/13018647/11357644
-                        int SECOND_MILLIS = 1000;
-                        int MINUTE_MILLIS = 60 * SECOND_MILLIS;
-                        int HOUR_MILLIS = 60 * MINUTE_MILLIS;
-                        int DAY_MILLIS = 24 * HOUR_MILLIS;
-
-                        String friendlyTime;
-                        if (diff < MINUTE_MILLIS) {
-                            friendlyTime = "Just now";
-                        } else if (diff < 2 * MINUTE_MILLIS) {
-                            friendlyTime = "A minute ago";
-                        } else if (diff < 50 * MINUTE_MILLIS) {
-                            friendlyTime = diff / MINUTE_MILLIS + " minutes ago";
-                        } else if (diff < 90 * MINUTE_MILLIS) {
-                            friendlyTime = "An hour ago";
-                        } else if (diff < 24 * HOUR_MILLIS) {
-                            friendlyTime = diff / HOUR_MILLIS + " hours ago";
-                        } else if (diff < 48 * HOUR_MILLIS) {
-                            friendlyTime = "Yesterday";
-                        } else {
-                            friendlyTime = diff / DAY_MILLIS + " days ago";
-                        }
-
-                        SimpleDateFormat sdf = new SimpleDateFormat(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.format"));
-                        TimeZone timeZone = TimeZone.getTimeZone(VulcanDatabase.getInstance().getConfig().getString("log-date-timezone", "Australia/Melbourne"));
-                        sdf.setTimeZone(timeZone);
-
-                        FancyMessage fancyLog = new FancyMessage(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.message").replace("%niceformatted%", friendlyTime).replace("%longdateformat%", sdf.format(new Date(log.getTimestamp())))))
-                                .tooltip(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.hover").replace("%niceformatted%", friendlyTime).replace("%longdateformat%", sdf.format(new Date(log.getTimestamp())))));
-
-                        String description = treeMap.get(log.getCheckName() + log.getCheckType()).getDescription();
-
-                        fancyLog.then(" " + Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.main-message.message")
-                                .replace("%player%", player.getName())
+                    if (!VulcanDatabase.getInstance().getConfig().getStringList("messages.log.main-message.hover").isEmpty()) {
+                        List<String> tooltip = VulcanDatabase.getInstance().getConfig().getStringList("messages.log.main-message.hover");
+                        tooltip.replaceAll(string -> Common.colorize(string.replace("%player%", player.getName())
                                 .replace("%uuid%", player.getUniqueId().toString())
                                 .replace("%info%", log.getInfo())
                                 .replace("%description%", description)
@@ -127,26 +141,13 @@ public class LogsCommand implements CommandExecutor {
                                 .replace("%vl%", log.getVl() + "")
                                 .replace("%ping%", log.getPing() + "")
                                 .replace("%tps%", new DecimalFormat("#.##").format(log.getTps()) + "")
+                                .replace("%server%", log.getServer())
                         ));
+                        fancyLog.tooltip(tooltip);
+                    }
 
-                        if (!VulcanDatabase.getInstance().getConfig().getStringList("messages.log.main-message.hover").isEmpty()) {
-                            List<String> tooltip = VulcanDatabase.getInstance().getConfig().getStringList("messages.log.main-message.hover");
-                            tooltip.replaceAll(string -> Common.colorize(string.replace("%player%", player.getName())
-                                    .replace("%uuid%", player.getUniqueId().toString())
-                                    .replace("%info%", log.getInfo())
-                                    .replace("%description%", description)
-                                    .replace("%version%", log.getVersion())
-                                    .replace("%check%", log.getCheckName())
-                                    .replace("%type%", log.getCheckType())
-                                    .replace("%vl%", log.getVl() + "")
-                                    .replace("%ping%", log.getPing() + "")
-                                    .replace("%tps%", new DecimalFormat("#.##").format(log.getTps()) + "")));
-                            fancyLog.tooltip(tooltip);
-                        }
-
-                        fancyLog.send(sender);
-                    });
-                }
+                    fancyLog.send(sender);
+                });
             }
         });
         return true;
