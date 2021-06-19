@@ -29,8 +29,9 @@ import com.mnewt00.vulcandatabase.VulcanDatabase;
 import com.mnewt00.vulcandatabase.util.Common;
 import me.frep.vulcan.api.VulcanAPI;
 import me.frep.vulcan.api.check.Check;
-import me.frep.vulcan.api.check.ICheckData;
-import mkremins.fanciful.FancyMessage;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -85,20 +86,25 @@ public class LogsCommand implements CommandExecutor {
                 return;
             }
 
-            FancyMessage fancyHeader = new FancyMessage(Common.colorize(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log-header.message")
+            TextComponent textComponent = Component.text(
+                    Common.colorize(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log-header.message")
                     .replace("%player%", player.getName())
                     .replace("%uuid%", player.getUniqueId().toString())
                     .replace("%page%", String.valueOf(pages + 1))
-                    .replace("%maxpage%", String.valueOf(pageCount / 10 + 1)))));
+                    .replace("%maxpage%", String.valueOf(pageCount / 10 + 1))))
+            );
+
             if (!VulcanDatabase.getInstance().getConfig().getString("messages.log-header.tooltip").isEmpty()) {
-                fancyHeader.tooltip(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log-header.tooltip")
+                HoverEvent<Component> hoverEvent = HoverEvent.showText(Component.text(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log-header.tooltip")
                         .replace("%player%", player.getName())
                         .replace("%uuid%", player.getUniqueId().toString())
                         .replace("%page%", String.valueOf(pages + 1))
-                        .replace("%maxpage%", String.valueOf(pageCount / 10 + 1))));
+                        .replace("%maxpage%", String.valueOf(pageCount / 10 + 1)))));
+                (VulcanDatabase.getInstance().getAdventure()).sender(sender).sendMessage(textComponent.hoverEvent(hoverEvent));
+            } else {
+                (VulcanDatabase.getInstance().getAdventure()).sender(sender).sendMessage(textComponent);
             }
 
-            Bukkit.getScheduler().runTask(VulcanDatabase.getInstance(), () -> fancyHeader.send(sender));
 
             Map<String, Check> treeMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
             VulcanAPI.Factory.getApi().getChecks(Bukkit.getOnlinePlayers().stream().findFirst().orElseThrow(() -> new IllegalArgumentException("No players are online to get checks descriptions."))).forEach(c -> treeMap.put(c.getName() + c.getType(), c));
@@ -134,12 +140,14 @@ public class LogsCommand implements CommandExecutor {
                     TimeZone timeZone = TimeZone.getTimeZone(VulcanDatabase.getInstance().getConfig().getString("log-date-timezone", "Australia/Melbourne"));
                     sdf.setTimeZone(timeZone);
 
-                    FancyMessage fancyLog = new FancyMessage(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.message").replace("%niceformatted%", friendlyTime).replace("%longdateformat%", sdf.format(new Date(log.getTimestamp())))))
-                            .tooltip(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.hover").replace("%niceformatted%", friendlyTime).replace("%longdateformat%", sdf.format(new Date(log.getTimestamp())))));
+                    HoverEvent<Component> logEventHoverFirst = HoverEvent.showText(Component.text(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.hover").replace("%niceformatted%", friendlyTime).replace("%longdateformat%", sdf.format(new Date(log.getTimestamp()))))));
+
+                    TextComponent.Builder builder = Component.text(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.message").replace("%niceformatted%", friendlyTime).replace("%longdateformat%", sdf.format(new Date(log.getTimestamp())))))
+                            .hoverEvent(logEventHoverFirst).toBuilder();
 
                     String description = treeMap.get(log.getCheckName() + log.getCheckType()).getDescription();
 
-                    fancyLog.then(" " + Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.main-message.message")
+                    TextComponent mainLog = (Component.text(" " + Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.main-message.message")
                             .replace("%player%", player.getName())
                             .replace("%uuid%", player.getUniqueId().toString())
                             .replace("%info%", log.getInfo())
@@ -151,7 +159,7 @@ public class LogsCommand implements CommandExecutor {
                             .replace("%ping%", log.getPing() + "")
                             .replace("%tps%", new DecimalFormat("#.##").format(log.getTps()) + "")
                             .replace("%server%", log.getServer())
-                    ));
+                    )));
 
                     if (!VulcanDatabase.getInstance().getConfig().getStringList("messages.log.main-message.hover").isEmpty()) {
                         List<String> tooltip = VulcanDatabase.getInstance().getConfig().getStringList("messages.log.main-message.hover");
@@ -167,10 +175,14 @@ public class LogsCommand implements CommandExecutor {
                                 .replace("%tps%", new DecimalFormat("#.##").format(log.getTps()) + "")
                                 .replace("%server%", log.getServer())
                         ));
-                        fancyLog.tooltip(tooltip);
-                    }
 
-                    fancyLog.send(sender);
+                        HoverEvent<Component> mainTooltip = HoverEvent.showText(Component.text(String.join("\n", tooltip)));
+                        builder.append(mainLog.hoverEvent(mainTooltip));
+                    } else {
+                        builder.append(mainLog);
+                    }
+                    (VulcanDatabase.getInstance().getAdventure()).sender(sender).sendMessage(builder.build());
+
                 });
             }
         });

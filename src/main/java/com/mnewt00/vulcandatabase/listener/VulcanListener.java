@@ -42,7 +42,7 @@ public class VulcanListener implements Listener {
                         System.currentTimeMillis(),
                         VulcanDatabase.getInstance().getConfig().getString("server-name"),
                         event.getInfo(),
-                        WordUtils.capitalize(event.getCheck().getName()),
+                        event.getCheck().getDisplayName(),
                         String.valueOf(event.getCheck().getType()).toUpperCase(),
                     event.getCheck().getVl() + 1, VulcanAPI.Factory.getApi().getClientVersion(event.getPlayer()),
                         VulcanAPI.Factory.getApi().getPing(event.getPlayer()),

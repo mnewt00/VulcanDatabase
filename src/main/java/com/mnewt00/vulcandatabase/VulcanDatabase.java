@@ -28,6 +28,7 @@ import com.mnewt00.vulcandatabase.commands.LogsCommand;
 import com.mnewt00.vulcandatabase.listener.VulcanListener;
 import com.mnewt00.vulcandatabase.storage.MySQLStorageProvider;
 import lombok.Getter;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,10 +36,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class VulcanDatabase extends JavaPlugin {
     @Getter private static VulcanDatabase instance;
     @Getter private MySQLStorageProvider storageProvider;
+    @Getter private BukkitAudiences adventure;
 
     @Override
     public void onEnable() {
         instance = this;
+        this.adventure = BukkitAudiences.create(this);
 
         saveDefaultConfig();
 
