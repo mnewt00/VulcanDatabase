@@ -48,7 +48,7 @@ public final class VulcanDatabase extends JavaPlugin {
         ConfigurationSection data = getConfig().getConfigurationSection("connection-information");
 
         String host = data.getString("host").split(":")[0];
-        String port = data.getString("host").split(":").length > 1 ? data.getString("host").split(":")[0] : "";
+        String port = data.getString("host").split(":").length > 1 ? data.getString("host").split(":")[1] : "";
         String username = data.getString("username");
         String password = data.getString("password");
         String databaseName = data.getString("database-name");
