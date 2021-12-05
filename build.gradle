@@ -65,7 +65,7 @@ dependencies {
 }
 
 shadowJar {
-    relocate "net.kyori", "com.mnewt00.vulcandatabase.shaded.kyoripowered"
+    relocate "net.kyori.adventure", "com.mnewt00.vulcandatabase.shaded.adventure"
     relocate "com.zaxxer.hikari", "com.mnewt00.vulcandatabase.shaded.hikari"
 }
 
