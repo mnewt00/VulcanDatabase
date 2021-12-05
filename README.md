@@ -1,6 +1,6 @@
 # VulcanDatabase - A MySQL extension for Vulcan AntiCheat
 
-**IF YOU NEED HELP JOIN https://austech.dev/to/support AND USE THE COMMAND `/ticket create`**
+**IF YOU NEED HELP JOIN https://austech.dev/to/support AND USE OPEN A TICKET IN #ticket
 
 Pre-compiled version can be found in the releases tab to the left.
 
