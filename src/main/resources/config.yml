@@ -1,7 +1,7 @@
 # The storage types the plugin uses
 
-# There are two types of storage: SQLite and MySQL.
-connection-type: SQLite
+# There are two types of storage: sqlite and mysql.
+connection-type: sqlite
 
 # Only used if connection-type is MySQL
 connection-information:
