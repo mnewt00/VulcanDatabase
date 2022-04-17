@@ -27,15 +27,19 @@ package com.mnewt00.vulcandatabase;
 import com.mnewt00.vulcandatabase.commands.LogsCommand;
 import com.mnewt00.vulcandatabase.listener.VulcanListener;
 import com.mnewt00.vulcandatabase.storage.MySQLStorageProvider;
+import com.mnewt00.vulcandatabase.storage.SQLiteStorageProvider;
+import com.mnewt00.vulcandatabase.storage.StorageProvider;
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Locale;
+
 public final class VulcanDatabase extends JavaPlugin {
     @Getter private static VulcanDatabase instance;
-    @Getter private MySQLStorageProvider storageProvider;
+    @Getter private StorageProvider storageProvider;
     @Getter private BukkitAudiences adventure;
 
     @Override
@@ -45,17 +49,22 @@ public final class VulcanDatabase extends JavaPlugin {
 
         saveDefaultConfig();
 
-        ConfigurationSection data = getConfig().getConfigurationSection("connection-information");
 
-        String host = data.getString("host").split(":")[0];
-        String port = data.getString("host").split(":").length > 1 ? data.getString("host").split(":")[1] : "";
-        String username = data.getString("username");
-        String password = data.getString("password");
-        String databaseName = data.getString("database-name");
-        String tablePrefix = data.getString("table-prefix");
-        boolean useSSL = data.getBoolean("useSSL");
 
-        storageProvider = new MySQLStorageProvider(host, port, username, password, databaseName, tablePrefix, useSSL);
+        if (getConfig().getString("connection-type").toUpperCase(Locale.ROOT).equals("MYSQL")) {
+            ConfigurationSection data = getConfig().getConfigurationSection("connection-information");
+
+            String host = data.getString("host").split(":")[0];
+            String port = data.getString("host").split(":").length > 1 ? data.getString("host").split(":")[1] : "";
+            String username = data.getString("username");
+            String password = data.getString("password");
+            String databaseName = data.getString("database-name");
+            String tablePrefix = data.getString("table-prefix");
+            boolean useSSL = data.getBoolean("useSSL");
+            storageProvider = new MySQLStorageProvider(host, port, username, password, databaseName, tablePrefix, useSSL);
+        } else {
+            storageProvider = new SQLiteStorageProvider();
+        }
 
         Bukkit.getPluginManager().registerEvents(new VulcanListener(), this);
 

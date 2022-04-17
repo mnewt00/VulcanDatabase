@@ -145,7 +145,7 @@ public class LogsCommand implements CommandExecutor {
                     TextComponent.Builder builder = Component.text(Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.time.message").replace("%niceformatted%", friendlyTime).replace("%longdateformat%", sdf.format(new Date(log.getTimestamp())))))
                             .hoverEvent(logEventHoverFirst).toBuilder();
 
-                    String description = treeMap.get(log.getCheckName() + log.getCheckType()).getDescription();
+                    String description = treeMap.get((log.getCheckName() + log.getCheckType()).replace(" ", "").toLowerCase(Locale.ROOT)).getDescription();
 
                     TextComponent mainLog = (Component.text(" " + Common.colorize(VulcanDatabase.getInstance().getConfig().getString("messages.log.main-message.message")
                             .replace("%player%", player.getName())

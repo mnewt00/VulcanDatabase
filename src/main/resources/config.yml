@@ -1,5 +1,9 @@
 # The storage types the plugin uses
 
+# There are two types of storage: sqlite and mysql.
+connection-type: sqlite
+
+# Only used if connection-type is MySQL
 connection-information:
   # By default, the ports will be 3306.
   # Use ip:port if you need to.
