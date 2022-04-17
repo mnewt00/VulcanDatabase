@@ -38,9 +38,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
-public class MySQLStorageProvider {
-    private final HikariDataSource dataSource;
-    @Getter private Connection connection;
+public class MySQLStorageProvider implements StorageProvider{
+
+    @Getter private final Connection connection;
 
     @SneakyThrows
     public MySQLStorageProvider(String host, String port, String username, String password, String databaseName, String tablePrefix, boolean useSSL) {
@@ -66,12 +66,13 @@ public class MySQLStorageProvider {
         config.addDataSourceProperty("cacheCallableStmts", "true");
         config.addDataSourceProperty("serverTimezone", "UTC");
 
-        this.dataSource = new HikariDataSource(config);
+        HikariDataSource dataSource = new HikariDataSource(config);
         this.connection = dataSource.getConnection();
 
-        initiateTables();
+        createTables();
     }
 
+    @Override
     public int count(UUID uuid) {
         int finalCount;
         try (PreparedStatement preparedStatement = getConnection().prepareStatement("SELECT COUNT(*) FROM vulcandb_logs WHERE uuid = ?")) {
@@ -87,6 +88,7 @@ public class MySQLStorageProvider {
         return finalCount;
     }
 
+    @Override
     public List<Log> getLogs(int amount, int offset, UUID uuid) {
         List<Log> logs = Lists.newArrayList();
 
@@ -118,29 +120,8 @@ public class MySQLStorageProvider {
         return logs;
     }
 
-    public void addLog(Log log, UUID uuid) {
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO vulcandb_logs" +
-                " (uuid, name, timestamp, `server`, information, `check`, check_type, violations, version, ping, tps)" +
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")) {
-            preparedStatement.setString(1, log.getUuid().toString());
-            preparedStatement.setString(2, log.getPlayerName());
-            preparedStatement.setString(3, String.valueOf(log.getTimestamp()));
-            preparedStatement.setString(4, log.getServer());
-            preparedStatement.setString(5, log.getInfo());
-            preparedStatement.setString(6, log.getCheckName());
-            preparedStatement.setString(7, log.getCheckType());
-            preparedStatement.setInt(8, log.getVl());
-            preparedStatement.setString(9, log.getVersion());
-            preparedStatement.setInt(10, log.getPing());
-            preparedStatement.setDouble(11, log.getTps());
-
-            preparedStatement.executeUpdate();
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    public void initiateTables() {
+    @Override
+    public void createTables() {
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(
                 "CREATE TABLE IF NOT EXISTS vulcandb_logs (" +
                         "id INTEGER PRIMARY KEY AUTO_INCREMENT," +
@@ -158,6 +139,29 @@ public class MySQLStorageProvider {
                         ");"
         )) {
             preparedStatement.execute();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    @Override
+    public void addLog(Log log, UUID uuid) {
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement("INSERT INTO vulcandb_logs" +
+                " (uuid, name, timestamp, `server`, information, `check`, check_type, violations, version, ping, tps)" +
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")) {
+            preparedStatement.setString(1, log.getUuid().toString());
+            preparedStatement.setString(2, log.getPlayerName());
+            preparedStatement.setString(3, String.valueOf(log.getTimestamp()));
+            preparedStatement.setString(4, log.getServer());
+            preparedStatement.setString(5, log.getInfo());
+            preparedStatement.setString(6, log.getCheckName());
+            preparedStatement.setString(7, log.getCheckType());
+            preparedStatement.setInt(8, log.getVl());
+            preparedStatement.setString(9, log.getVersion());
+            preparedStatement.setInt(10, log.getPing());
+            preparedStatement.setDouble(11, log.getTps());
+
+            preparedStatement.executeUpdate();
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
