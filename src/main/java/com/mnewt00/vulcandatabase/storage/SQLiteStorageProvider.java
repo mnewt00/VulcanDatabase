@@ -14,19 +14,16 @@ import java.util.UUID;
 public class SQLiteStorageProvider implements StorageProvider {
 
     @Getter
-    private final Connection connection;
+    private Connection connection = null;
 
     public SQLiteStorageProvider() {
-        Connection connection1;
         File database = new File(VulcanDatabase.getInstance().getDataFolder(), "database.db");
         try {
             Class.forName("org.sqlite.JDBC");
-            connection1 = DriverManager.getConnection("jdbc:sqlite:" + database.getAbsolutePath());
-        } catch (SQLException | ClassNotFoundException e) {
-            connection1 = null;
-            e.printStackTrace();
+            this.connection = DriverManager.getConnection("jdbc:sqlite:" + database.getAbsolutePath());
+        } catch (ClassNotFoundException | SQLException exception) {
+            exception.printStackTrace();
         }
-        this.connection = connection1;
         createTables();
     }
 
