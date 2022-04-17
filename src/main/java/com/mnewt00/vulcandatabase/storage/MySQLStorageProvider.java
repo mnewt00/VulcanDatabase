@@ -38,7 +38,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
-public class MySQLStorageProvider implements StorageProvider{
+public class MySQLStorageProvider implements StorageProvider {
 
     @Getter private final Connection connection;
 
